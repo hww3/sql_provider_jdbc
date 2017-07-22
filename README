@@ -1,0 +1,58 @@
+This is a module providing support for connecting to data sources using JDBC.
+
+This module requires that your Pike have Java support enabled (visible via pike --features).
+You must also have the desired java driver in your CLASSPATH.
+
+Note: SQL URLs as used by Pike for configuring database connections cause some friction with 
+JDBC connection strings, especially those with embedded slashes, such as for H2. Take the
+following H2 database connection string:
+
+
+jdbc:h2:/path/to/mydb
+
+If we try to use this within a pike SQL url we get strange behavior:
+
+jdbc://jdbc:h2:/path/to/mydb
+
+The first part tells pike to use the JDBC sql driver, and then it tries to parse the rest into
+the server and database portions. In this example, it ends up mangling the path, which isn't what
+we want. There are 2 ways to get around this:
+
+1. Escape any special characters that Pike might be parsing on
+
+The problem in this example is the slash, so by escaping slashes, we avoid any problems:
+
+jdbc://jdbc:h2:\/path\/to\/mydb
+
+2. Move the jdbc url out of the SQL url and into the host portion
+
+The JDBC sql driver assumes the "hostname" field contains the jdbc connection string, so we can create 
+a SQL URL that doesn't have a host portion:
+
+jdbc://user:pass@
+or
+jdbc://user@
+or even just
+jdbc://
+
+And then we can pass the jdbc connection string as the second argument to Sql.Sql(). The user and password
+can be real (the ones you want to use), or they can be wholly made up, as you can override them by passing
+the real user and password as the 4th and 5th arguments to Sql.Sql().
+
+Example:
+
+object s = Sql.Sql("jdbc://", "jdbc:h2:./test", "SA", "SA");
+
+```
+$ CLASSPATH=./h2-1.4.196.jar /usr/local/pike/8.0.462/bin/pike
+Pike v8.0 release 462 running Hilfe v3.5 (Incremental Pike Frontend)
+> object s = Sql.Sql("jdbc://jdbc:h2:.\/test");
+> s->server_info();                           
+(1) Result: "H2/1.4.196 (2017-06-10)@jdbc:h2:."
+>  s->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES");
+(2) Result: ({ /* 1 element */
+                ([ /* 1 element */
+                  "COUNT(*)": "29"
+                ])
+            })
+```
