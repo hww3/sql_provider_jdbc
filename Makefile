@@ -1,6 +1,6 @@
-MODULE_NAME=Sql.Provider.JDBC
+MODULE_NAME=Sql.Provider.jdbc
 MODULE_LICENSE=GPL/LGPL/MPL
-MODULE_DIR_NAME=Sql.Provider.JDBC
+MODULE_DIR_NAME=Sql.Provider.jdbc
 AUTHOR=William Welliver <william@welliver.org>
 
 release: 

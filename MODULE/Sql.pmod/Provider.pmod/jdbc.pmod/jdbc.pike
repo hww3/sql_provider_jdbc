@@ -1,3 +1,6 @@
+constant __version = "1.0.0";
+constant __author = "William Welliver <william@welliver.org>"
+
 #if constant(Java.jvm)
 
 object conn;
