@@ -43,10 +43,12 @@ Example:
 
 object s = Sql.Sql("jdbc://", "jdbc:h2:./test", "SA", "SA");
 
+
+
 ```
 $ CLASSPATH=./h2-1.4.196.jar /usr/local/pike/8.0.462/bin/pike
 Pike v8.0 release 462 running Hilfe v3.5 (Incremental Pike Frontend)
-> object s = Sql.Sql("jdbc://jdbc:h2:.\/test");
+> object s = Sql.Sql("jdbc://", "jdbc:h2:/tmp/test", "SA", "SA");
 > s->server_info();                           
 (1) Result: "H2/1.4.196 (2017-06-10)@jdbc:h2:."
 >  s->query("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES");
@@ -55,4 +57,52 @@ Pike v8.0 release 462 running Hilfe v3.5 (Incremental Pike Frontend)
                   "COUNT(*)": "29"
                 ])
             })
+```
+Prepared (Compiled) Statements
+
+JDBC allows a query to be prepared or compiled. This is desirable because many 
+applications use a small number of distinct queries when considered as a template,
+and compiling the query allows the database engine to re-use the partially executed 
+query many times, thus saving considerable computation. When using compiled queries,
+the variable parts of the query are identifed by query parameters, which are bound
+at the time the compiled query is executed. The two common types of binding are 
+a) positional, where the placeholder is a '?', and binding is performed based on the 
+placeholder number within the query and b) named, where the placeholder is given a 
+name or identifer in the form of :identifier, and then replacements are made by name.
+Named parameters are helpful as they provide context within the query and also 
+facilitate queries that use the same variable in multiple positions. 
+
+JDBC supports positional parameters natively; the Pike JDBC provider provides a layer
+that allows named parameters to be used. When a query statement is compiled using the 
+Pike JDBC provider, named parameters are converted to positional parameters and at
+the point of query execution (when the binding parameters are provided), the named
+parameters are inserted at the proper spots. You may use named or positional parameters
+interchangeably, though it is recommended that you not use a combination within a given
+statement, as transposition errors are more likely to be made during development.
+
+JDBC supports a wide range of parameter bindings, and at this time, only a relatively 
+small subset are automatically supported by the Pike provider. If you need to bind a 
+parameter that is not automatically handled, you may retrieve the JDBC statement 
+object and use the Java methods to perform the specific bindings you require.
+
+Using positional parameters:
+
+```
+> object s = Sql.Sql("jdbc://", "jdbc:h2:/tmp/test", "SA", "SA");
+> s->query("CREATE TABLE foo (a integer not null primary key auto_increment, b char(4))");
+> object q = s->compile_query("SELECT * FROM FOO WHERE A=?");
+> s->query(q, ([1: 125])); // JDBC parameters start at 1
+> s->query(q); // we've already bound the paramenters so we can reuse or replace 
+               // them (in whole or partially) if desired.
+```
+
+Using named parameters:
+
+```
+> object s = Sql.Sql("jdbc://", "jdbc:h2:/tmp/test", "SA", "SA");
+> s->query("CREATE TABLE foo (a integer not null primary key auto_increment, b char(4))");
+> object q = s->compile_query("SELECT * FROM FOO WHERE A=:id");
+> s->query(q, ([":id": 125]));
+> s->query(q); // we've already bound the paramenters so we can reuse or replace 
+               // them (in whole or partially) if desired.
 ```
