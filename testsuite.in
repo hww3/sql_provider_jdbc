@@ -1,0 +1,99 @@
+START_MARKER
+
+test_equal(
+  Sql.Provider.jdbc.utils()->convert_placeholders(
+	""),
+	""
+)
+
+test_equal(
+  Sql.Provider.jdbc.utils()->convert_placeholders(
+	"SELECT A FROM B"),
+	"SELECT A FROM B"
+)
+
+test_equal(
+  Sql.Provider.jdbc.utils()->convert_placeholders(
+	"SELECT A FROM B WHERE C=:C"),
+	"SELECT A FROM B WHERE C=?"
+)
+
+test_equal(
+  Sql.Provider.jdbc.utils()->convert_placeholders(
+	"SELECT A FROM B WHERE C=:C "),
+	"SELECT A FROM B WHERE C=? "
+)
+
+test_equal(
+  Sql.Provider.jdbc.utils()->convert_placeholders(
+	"SELECT A FROM B WHERE C=:C/2"),
+	"SELECT A FROM B WHERE C=?/2"
+)
+
+test_equal(
+  Sql.Provider.jdbc.utils()->convert_placeholders(
+	"SELECT A FROM B WHERE C=:C AND D=:C"),
+	"SELECT A FROM B WHERE C=? AND D=?"
+)
+
+test_eval_error(
+  Sql.Provider.jdbc.utils()->convert_placeholders(
+	"SELECT A FROM B WHERE C=:C AND D=:"),
+	"SELECT A FROM B WHERE C=? AND D=?"
+)
+
+test_equal(
+  Sql.Provider.jdbc.utils()->convert_placeholders(
+	"SELECT A FROM B WHERE C=':C' AND D=:C"),
+	"SELECT A FROM B WHERE C=':C' AND D=?"
+)
+
+test_equal(
+  Sql.Provider.jdbc.utils()->convert_placeholders(
+	"SELECT A FROM B WHERE C=':C' AND D=':C'"),
+	"SELECT A FROM B WHERE C=':C' AND D=':C'"
+)
+
+test_equal(
+  Sql.Provider.jdbc.utils()->convert_placeholders(
+	"'SELECT A FROM B WHERE C=':C' AND D=':C''"),
+	"'SELECT A FROM B WHERE C='?' AND D='?''"
+)
+
+test_equal(
+  Sql.Provider.jdbc.utils()->convert_placeholders(
+	"SELECT A FROM B WHERE C='':C' AND D=':C''"),
+	"SELECT A FROM B WHERE C=''?' AND D='?''"
+)
+
+test_equal(
+  Sql.Provider.jdbc.utils()->convert_placeholders(
+	"SELECT A FROM B WHERE C=''':C' AND D=':C''"),
+	"SELECT A FROM B WHERE C=''':C' AND D=':C''"
+)
+
+test_equal(
+  Sql.Provider.jdbc.utils()->convert_placeholders(
+	"SELECT A FROM B WHERE C='a'':C' AND D=':C''"),
+	"SELECT A FROM B WHERE C='a'':C' AND D=':C''"
+)
+
+test_equal(
+  Sql.Provider.jdbc.utils()->convert_placeholders(
+	"SELECT A FROM B WHERE C='''a'':C' AND D=':C''"),
+	"SELECT A FROM B WHERE C='''a'':C' AND D=':C''"
+)
+
+test_equal(
+  Sql.Provider.jdbc.utils()->convert_placeholders(
+	"SELECT A FROM B WHERE C='''a'':C' AND D=:C"),
+	"SELECT A FROM B WHERE C='''a'':C' AND D=?"
+)
+
+test_equal(
+  Sql.Provider.jdbc.utils()->convert_placeholders(
+	"SELECT A FROM B WHERE E=:E AND C='''a'':C' AND D=:C"),
+	"SELECT A FROM B WHERE E=? AND C='''a'':C' AND D=?"
+)
+
+END_MARKER
